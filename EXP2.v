@@ -40,6 +40,33 @@ module decoder(din,d0,d1,d2,d3,d4,d5,d6,d7);
 	assign d7=dout[0];
 endmodule
 
+//3-8 decoder2
+module decoder2(din,d0,d1,d2,d3,d4,d5,d6,d7);
+	input [2:0] din;
+	output d0,d1,d2,d3,d4,d5,d6,d7;
+	reg [7:0] dout;
+	always @(din)begin 
+		case(din)
+			3'b000 : dout<=8'b10000000;
+			3'b001 : dout<=8'b01000000;
+			3'b010 : dout<=8'b00100000;
+			3'b011 : dout<=8'b00010000;
+			3'b100 : dout<=8'b00001000;
+			3'b101 : dout<=8'b00000100;
+			3'b110 : dout<=8'b00000010;
+			3'b111 : dout<=8'b00000001;
+		endcase
+	end
+	assign d0=dout[7];
+	assign d1=dout[6];
+	assign d2=dout[5];
+	assign d3=dout[4];
+	assign d4=dout[3];
+	assign d5=dout[2];
+	assign d6=dout[1];
+	assign d7=dout[0];
+endmodule
+
 //8-1 selector
 module selector(d0,d1,d2,d3,d4,d5,d6,d7,dout,select);
 		input [3:0] d0,d1,d2,d3,d4,d5,d6,d7;
@@ -104,6 +131,24 @@ module counter(rst,clk,count);
 	end
 endmodule
 
+//frequency divider
+module divider(rst,clk_in,clk_out);
+	input clk_in;
+	input rst;
+	output reg clk_out;
+	reg [4:0] count;
+	
+	always@(posedge clk_in)begin
+		if(!rst)begin
+			clk_out=1'b0;count<=5'b00000;
+		end
+		else if(count==5'b11111)begin 
+			count<=5'b00000;clk_out=~clk_out;
+		end
+		else count<=count+5'b00001;
+	end
+endmodule
+
 //主模块
 module EXP2(
 	input clk,
@@ -127,13 +172,14 @@ module EXP2(
 	output LED_S6,
 	output LED_S7
 );
-	
+	wire clk_d;
 	wire d0,d1,d2,d3,d4,d5,d6,d7;
 	wire [2:0] num;
 	wire [3:0] data0,data1,data2,data3,data4,data5,data6,data7;
 	wire [3:0] medium_data;
 	
-	counter U1(rst,clk,num);
+	divider U6(rst,clk,clk_d);
+	counter U1(rst,clk_d,num);
 	decoder U2(select,d0,d1,d2,d3,d4,d5,d6,d7);
 	my_latch L0(input_data,en,d0,data0);
 	my_latch L1(input_data,en,d1,data1);
@@ -145,7 +191,7 @@ module EXP2(
 	my_latch L7(input_data,en,d7,data7);
 	selector U3(data0,data1,data2,data3,data4,data5,data6,data7,medium_data,num);
 	decoder_four_to_seven U4(medium_data,a,b,c,d,e,f,g);
-	decoder U5(num,LED_S0,LED_S1,LED_S2,LED_S3,LED_S4,LED_S5,LED_S6,LED_S7);
+	decoder2 U5(num,LED_S0,LED_S1,LED_S2,LED_S3,LED_S4,LED_S5,LED_S6,LED_S7);
 endmodule
 
 //该模块用于debug
@@ -168,16 +214,29 @@ module debug1(
 endmodule
 */	
 	
+module my_module(
+	input en,
+	input [3:0] input_data,
+	input [2:0] select,
+	input [2:0] num,
+	output [3:0] medium_data
+);	
+
+	wire d0,d1,d2,d3,d4,d5,d6,d7;
+	wire [3:0] data0,data1,data2,data3,data4,data5,data6,data7;
 	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+	decoder U2(select,d0,d1,d2,d3,d4,d5,d6,d7);
+	my_latch L0(input_data,en,d0,data0);
+	my_latch L1(input_data,en,d1,data1);
+	my_latch L2(input_data,en,d2,data2);
+	my_latch L3(input_data,en,d3,data3);
+	my_latch L4(input_data,en,d4,data4);
+	my_latch L5(input_data,en,d5,data5);
+	my_latch L6(input_data,en,d6,data6);
+	my_latch L7(input_data,en,d7,data7);
+	selector U3(data0,data1,data2,data3,data4,data5,data6,data7,medium_data,num);
+endmodule
+
 	
 	
 	
